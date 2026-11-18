@@ -9,7 +9,7 @@ import DrawerHeader from "@/src/components/ui/DrawerHeader";
 import LastUpdatedLabel from "@/src/components/ui/LastUpdatedLabel";
 import ScreenContainer, { useScreenInsets } from "@/src/components/ui/ScreenContainer";
 import { BRAND_NAME } from "@/src/components/branding/BrandLogo";
-import type { AssessmentListItem } from "@/src/features/assessments/domain/assessment.types";
+import type { AssessmentListItem, AssessmentStatus } from "@/src/features/assessments/domain/assessment.types";
 import {
   useAssessmentCounts,
   useAssessmentList,
@@ -22,8 +22,6 @@ import type { HeroCounts } from "@/src/features/dashboard/presentation/Dashboard
 import DashboardSection from "@/src/features/dashboard/presentation/DashboardSection";
 import LspList from "@/src/features/dashboard/presentation/LspList";
 import RequestRow from "@/src/features/dashboard/presentation/RequestRow";
-import type { TileStatus } from "@/src/features/dashboard/presentation/StatusTiles";
-import StatusTiles from "@/src/features/dashboard/presentation/StatusTiles";
 import { COLORS, SCREEN_HORIZONTAL_PADDING, SPACING } from "@/src/theme/tokens";
 
 const RECENT_LIMIT = 5;
@@ -54,8 +52,8 @@ export default function DashboardScreen(): ReactElement {
     reloadRanking();
   }, [refreshRecent, reloadCounts, reloadRanking]);
   const openRequests = useCallback((): void => router.navigate("/(app)/(tabs)/assessments"), []);
-  const openRequestsByStatus = useCallback((status: TileStatus): void => {
-    // The nonce makes repeat taps on the same tile re-apply the filter after it was changed by hand.
+  const openRequestsByStatus = useCallback((status: AssessmentStatus): void => {
+    // The nonce makes repeat taps on the same chip re-apply the filter after it was changed by hand.
     router.navigate({ pathname: "/(app)/(tabs)/assessments", params: { status, nonce: String(Date.now()) } });
   }, []);
   const handleOpen = useCallback((item: AssessmentListItem): void => {
@@ -65,7 +63,7 @@ export default function DashboardScreen(): ReactElement {
   const heroCounts = useMemo((): HeroCounts | null => {
     if (counts.viewState.status !== "success") return null;
     const { total, byStatus } = counts.viewState.data;
-    return { total, pending: byStatus.Pending ?? 0, assigned: byStatus.Assigned ?? 0, completed: byStatus.Completed ?? 0 };
+    return { total, pending: byStatus.Pending ?? 0, assigned: byStatus.Assigned ?? 0, inProgress: byStatus["In Progress"] ?? 0, completed: byStatus.Completed ?? 0 };
   }, [counts.viewState]);
 
   const recentItems = useMemo(
@@ -84,19 +82,13 @@ export default function DashboardScreen(): ReactElement {
         showsVerticalScrollIndicator={false}
       >
         <Reveal index={0}>
-          <DashboardHero clientName={session?.user.clientName ?? ""} counts={heroCounts} greeting={greeting} name={session?.user.name ?? ""} />
+          <DashboardHero clientName={session?.user.clientName ?? ""} counts={heroCounts} greeting={greeting} name={session?.user.name ?? ""} onOpenStatus={openRequestsByStatus} />
         </Reveal>
 
         <LastUpdatedLabel isRefreshing={recent.isRefreshing} updatedAt={recent.updatedAt} />
 
         {counts.viewState.status === "error" ? (
           <AsyncStateView emptyMessage="" message={counts.viewState.message} onRetry={reloadCounts} status="error" variant="detail" />
-        ) : null}
-
-        {heroCounts ? (
-          <Reveal index={1}>
-            <StatusTiles counts={heroCounts} onOpen={openRequestsByStatus} />
-          </Reveal>
         ) : null}
 
         <Reveal index={2}>
