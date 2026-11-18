@@ -23,6 +23,68 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const UNAUTHORIZED = 401;
 
+/*
+ * The CSRLSC server has very few database connections. When several requests arrive together (the dashboard
+ * fires about ten at sign-in) some fail with "Too many database connections", and its token check then answers
+ * 401 INVALID_TOKEN although the token is valid. Signing out on that 401 threw users back to the login screen
+ * right after signing in. So the app keeps at most two requests in flight, and retries a 401 (and a read that
+ * hit the connection limit) after a short wait before treating the session as ended.
+ */
+const MAX_REQUESTS_IN_FLIGHT = 2;
+const RETRY_DELAYS_MS = [700, 1_600] as const;
+const CONNECTION_LIMIT_MESSAGE = "too many database connections";
+
+let requestsInFlight = 0;
+const waitingForSlot: (() => void)[] = [];
+
+const withRequestSlot = async <T>(task: () => Promise<T>): Promise<T> => {
+  if (requestsInFlight >= MAX_REQUESTS_IN_FLIGHT) {
+    // A finishing request hands its slot straight to us (the count stays the same), so a request that
+    // arrives in between cannot slip past the limit.
+    await new Promise<void>((resolve) => waitingForSlot.push(resolve));
+  } else {
+    requestsInFlight += 1;
+  }
+  try {
+    return await task();
+  } finally {
+    const next = waitingForSlot.shift();
+    if (next) next();
+    else requestsInFlight -= 1;
+  }
+};
+
+const wait = (milliseconds: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+const hitConnectionLimit = (body: unknown): boolean =>
+  getApiErrorMessage(body, "").toLocaleLowerCase().includes(CONNECTION_LIMIT_MESSAGE);
+
+/** Searches, details and GETs only read, so repeating them after a server-side failure is safe. */
+const isReadRequest = (method: string, path: string): boolean =>
+  method === "GET" || /\/(search|details)-/.test(path);
+
+interface ApiResult {
+  response: Response;
+  body: unknown;
+}
+
+/**
+ * Runs a request in a free slot and repeats it while the server answers 401 or, for reads, runs out of database
+ * connections. Only a 401 that survives the retries ends the session.
+ */
+const sendWithRetry = async (send: () => Promise<ApiResult>, canRetryServerErrors: boolean): Promise<ApiResult> => {
+  let result = await withRequestSlot(send);
+  for (const delay of RETRY_DELAYS_MS) {
+    const isRetryable =
+      result.response.status === UNAUTHORIZED ||
+      (canRetryServerErrors && result.response.status >= 500 && hitConnectionLimit(result.body));
+    if (!isRetryable) break;
+    await wait(delay);
+    result = await withRequestSlot(send);
+  }
+  return result;
+};
+
 const assertSuccess = async (
   response: Response,
   body: unknown,
@@ -45,12 +107,15 @@ export const requestJson = async (
   body: unknown,
   fallbackMessage: string,
 ): Promise<unknown> => {
-  const { response, body: responseBody } = await executeJsonRequest({
-    url: API_BASE_URL + path,
-    method,
-    headers: { ...createAuthenticatedHeaders(session), "Content-Type": "application/json" },
-    body,
-  });
+  const { response, body: responseBody } = await sendWithRetry(
+    () => executeJsonRequest({
+      url: API_BASE_URL + path,
+      method,
+      headers: { ...createAuthenticatedHeaders(session), "Content-Type": "application/json" },
+      body,
+    }),
+    isReadRequest(method, path),
+  );
   await assertSuccess(response, responseBody, fallbackMessage);
   return responseBody;
 };
@@ -63,12 +128,16 @@ export const requestMultipart = async (
   body: FormData,
   fallbackMessage: string,
 ): Promise<unknown> => {
-  const { response, body: responseBody } = await executeMultipartRequest({
-    url: API_BASE_URL + path,
-    method,
-    headers: createAuthenticatedHeaders(session),
-    body,
-  });
+  // An upload is repeated only after a 401, which the server sends before it stores anything.
+  const { response, body: responseBody } = await sendWithRetry(
+    () => executeMultipartRequest({
+      url: API_BASE_URL + path,
+      method,
+      headers: createAuthenticatedHeaders(session),
+      body,
+    }),
+    false,
+  );
   await assertSuccess(response, responseBody, fallbackMessage);
   return responseBody;
 };
