@@ -34,7 +34,7 @@ export const rankLsps = (entries: readonly CompanyRating[]): LspRanking => {
 
   const scores: LspScore[] = Array.from(byCompany, ([companyId, value]) => ({
     companyId,
-    companyName: value.name || "Unnamed company",
+    companyName: value.name,
     averageRating: value.count > 0 ? roundToOneDecimal(value.sum / value.count) : 0,
     assessmentCount: value.assessments,
     ratedCount: value.count,

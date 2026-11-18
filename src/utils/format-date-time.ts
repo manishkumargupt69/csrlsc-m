@@ -30,7 +30,7 @@ const getPart = (
 
 export const formatDateTime = (value: string): string => {
   const date = parseApiDate(value);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "";
 
   const parts = DATE_TIME_FORMATTER.formatToParts(date);
   const day = getPart(parts, "day");
@@ -43,9 +43,9 @@ export const formatDateTime = (value: string): string => {
 };
 
 export const formatDate = (value: string): string => {
-  if (!value) return "TBD";
+  if (!value) return "";
   const date = parseApiDate(value);
-  if (Number.isNaN(date.getTime())) return "—";
+  if (Number.isNaN(date.getTime())) return "";
 
   const parts = DATE_FORMATTER.formatToParts(date);
   const day = getPart(parts, "day");

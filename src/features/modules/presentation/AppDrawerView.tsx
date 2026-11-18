@@ -73,7 +73,7 @@ export default function AppDrawerView({
                 <Feather accessibilityElementsHidden color={COLORS.white} name="menu" size={21} />
               </Pressable>
             </View>
-            <Pressable accessibilityLabel={`Open profile for ${userName || "user"}`} accessibilityRole="button" onPress={onProfile} style={({ pressed }) => [styles.profile, pressed && styles.heroButtonPressed]}>
+            <Pressable accessibilityLabel={userName ? `Open profile for ${userName}` : "Open profile"} accessibilityRole="button" onPress={onProfile} style={({ pressed }) => [styles.profile, pressed && styles.heroButtonPressed]}>
               <UserAvatar name={userName} size={MINIMUM_TOUCH_SIZE} tone="light" uri={photoUrl} />
               <View style={styles.profileCopy}>
                 <Text numberOfLines={1} style={styles.userName}>{userName}</Text>

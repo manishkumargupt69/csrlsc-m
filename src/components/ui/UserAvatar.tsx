@@ -13,7 +13,7 @@ export const getInitials = (name: string): string => {
     .filter(Boolean)
     .slice(0, MAX_INITIALS)
     .map((word) => word.charAt(0).toLocaleUpperCase());
-  return letters.join("") || "?";
+  return letters.join("");
 };
 
 interface UserAvatarProps {

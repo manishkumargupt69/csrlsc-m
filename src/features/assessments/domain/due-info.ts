@@ -17,8 +17,11 @@ const startOfDay = (date: Date): number => new Date(date.getFullYear(), date.get
 
 /** How urgent a request's target date is, in words the card can show. Completed requests are never urgent. */
 export const getDueInfo = (toBeCompletedBy: string, status: string, now: Date = new Date()): DueInfo => {
-  if (!toBeCompletedBy) return { label: "No due date", tone: "neutral", icon: "calendar" };
+  // No date from the API: nothing is shown, the app does not invent one.
+  if (!toBeCompletedBy) return { label: "", tone: "neutral", icon: "calendar" };
   const dateLabel = formatDate(toBeCompletedBy);
+  // A date the app cannot read is shown as nothing, like a missing one.
+  if (!dateLabel) return { label: "", tone: "neutral", icon: "calendar" };
   if (status === "Completed") return { label: "Due " + dateLabel, tone: "neutral", icon: "check-circle" };
   const daysLeft = Math.round((startOfDay(parseApiDate(toBeCompletedBy)) - startOfDay(now)) / DAY_MS);
   if (daysLeft < 0) return { label: "Overdue · " + dateLabel, tone: "danger", icon: "alert-circle" };

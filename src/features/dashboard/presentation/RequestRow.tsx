@@ -23,15 +23,15 @@ export default function RequestRow({ item, onPress, emphasizeDue = false }: Requ
   const due = getDueInfo(item.toBeCompletedBy, item.status);
   const tone = emphasizeDue ? due.tone : getStatusTone(item.status);
   const icon = emphasizeDue ? due.icon : getStatusIcon(item.status);
-  const detail = emphasizeDue ? due.label : item.status + " · " + (item.requestFor || "—");
+  const detail = emphasizeDue ? due.label : [item.status, item.requestFor].filter(Boolean).join(" · ");
 
   return (
-    <PressableScale accessibilityLabel={item.assessmentNo + ", " + item.status + ", " + due.label} accessibilityRole="button" onPress={handlePress} style={styles.row}>
+    <PressableScale accessibilityLabel={[item.assessmentNo, item.status, due.label].filter(Boolean).join(", ")} accessibilityRole="button" onPress={handlePress} style={styles.row}>
       <IconTile name={icon} size={40} tone={tone} />
       <View style={styles.copy}>
         <Text numberOfLines={1} style={styles.number}>{item.assessmentNo}</Text>
         <Text numberOfLines={1} style={[styles.detail, emphasizeDue && due.tone === "danger" && styles.danger]}>{detail}</Text>
-        {emphasizeDue ? <Text numberOfLines={1} style={styles.company}>{item.requestFor || "—"}</Text> : null}
+        {emphasizeDue && item.requestFor ? <Text numberOfLines={1} style={styles.company}>{item.requestFor}</Text> : null}
       </View>
       <Feather accessibilityElementsHidden color={COLORS.inkMuted} name="chevron-right" size={18} />
     </PressableScale>

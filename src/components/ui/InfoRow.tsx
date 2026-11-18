@@ -17,14 +17,15 @@ interface InfoRowProps {
   children?: ReactNode;
 }
 
-/** One fact: icon tile, a small label above, the value below. */
-export default function InfoRow({ label, value, iconName, isSelectable = false, children }: InfoRowProps): ReactElement {
+/** One fact: icon tile, a small label above, the value below. A fact with no value is left out, not shown blank. */
+export default function InfoRow({ label, value, iconName, isSelectable = false, children }: InfoRowProps): ReactElement | null {
+  if (!children && !value) return null;
   return (
     <View style={styles.row}>
       {iconName ? <IconTile name={iconName} /> : null}
       <View style={styles.copy}>
         <Text style={styles.label}>{label}</Text>
-        {children ?? <Text selectable={isSelectable} style={styles.valueText}>{value || "—"}</Text>}
+        {children ?? <Text selectable={isSelectable} style={styles.valueText}>{value}</Text>}
       </View>
     </View>
   );
@@ -36,7 +37,11 @@ interface InfoGroupProps {
 
 /** Inset grouped list: a rounded surface with hairline dividers between rows. */
 export function InfoGroup({ children }: InfoGroupProps): ReactElement {
-  const rows = Children.toArray(children).filter(isValidElement);
+  // Rows with no value render nothing; drop them here too so no divider is left behind.
+  const rows = Children.toArray(children).filter(isValidElement).filter((row) => {
+    const props = row.props as Partial<InfoRowProps>;
+    return !("value" in props) || Boolean(props.value) || Boolean(props.children);
+  });
   return (
     <View style={styles.group}>
       {rows.map((row, index) => (

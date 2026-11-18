@@ -5,7 +5,9 @@ import { COLORS, RADII, SPACING, TYPOGRAPHY } from "@/src/theme/tokens";
 import type { StatusTone } from "@/src/types/status";
 
 interface StatusBadgeProps { label: string; tone: StatusTone; }
-export default function StatusBadge({ label, tone }: StatusBadgeProps): ReactElement {
+/** Shows the status the API sent; an empty status shows no badge rather than a made-up one. */
+export default function StatusBadge({ label, tone }: StatusBadgeProps): ReactElement | null {
+  if (!label) return null;
   return <View accessibilityLabel={`Status: ${label}`} style={[styles.badge, CONTAINER_STYLES[tone]]}><Text style={[styles.label, LABEL_STYLES[tone]]}>{label}</Text></View>;
 }
 
