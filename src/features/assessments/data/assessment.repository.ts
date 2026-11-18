@@ -29,8 +29,10 @@ const LIST_INCLUDE = {
   demandedBy: { select: { id: true, companyName: true } },
   assesmentOf: { select: { id: true, companyName: true } },
   domain: { select: { id: true, codeValue: true } },
+  location: { select: { id: true, nameCode: true } },
+  material: { select: { id: true, nameCode: true } },
   auditors: { include: { auditor: { select: { id: true, nameCode: true } } } },
-  parameters: { select: { id: true, status: true } },
+  parameters: { select: { id: true, status: true, parameterType: { select: { codeValue: true } } } },
 } as const;
 
 const DETAIL_INCLUDE = {
@@ -41,11 +43,14 @@ const DETAIL_INCLUDE = {
   assesmentOf: { select: { id: true, companyName: true } },
   domain: { select: { id: true, codeValue: true } },
   geoType: { select: { id: true, codeValue: true } },
+  location: { select: { id: true, nameCode: true } },
+  material: { select: { id: true, nameCode: true } },
   auditors: { include: { auditor: { select: { id: true, nameCode: true } } } },
   parameters: {
     include: {
       mainParameter: { select: { codeValue: true } },
       parameterType: { select: { codeValue: true } },
+      overallGroupingValue: { select: { codeValue: true } },
       responseType: { select: { codeValue: true } },
     },
   },
@@ -120,6 +125,9 @@ export class AssessmentRepository {
     if (query.status) filters.status = query.status;
     // The auditors join table is the source of truth; the legacy auditorId column is not.
     if (query.assignedToUserId) filters["auditors.auditorId"] = query.assignedToUserId;
+    // Matches requests with at least one parameter of that type or grouping.
+    if (query.parameterTypeId) filters["parameters.parameterTypeId"] = query.parameterTypeId;
+    if (query.overallGroupingId) filters["parameters.overallGroupingValueId"] = query.overallGroupingId;
     const body = await requestJson(session, "POST", "/assessment/search-assessment", {
       page,
       limit: PAGE_SIZE,

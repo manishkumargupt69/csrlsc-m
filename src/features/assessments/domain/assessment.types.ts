@@ -1,8 +1,8 @@
 import type { EvidenceAttachment } from "@/src/types/evidence";
 
-export type AssessmentStatus = "Pending" | "Assigned" | "Completed";
+export type AssessmentStatus = "Pending" | "Assigned" | "In Progress" | "Completed";
 
-export const ASSESSMENT_STATUSES: readonly AssessmentStatus[] = ["Pending", "Assigned", "Completed"];
+export const ASSESSMENT_STATUSES: readonly AssessmentStatus[] = ["Pending", "Assigned", "In Progress", "Completed"];
 
 /** Parameters are either waiting for an auditor or already rated. */
 export const PARAMETER_AUDITED = "Audited";
@@ -22,6 +22,13 @@ export interface AssessmentListItem {
   requestedBy: string;
   /** The company being assessed ("Assessment Of"). */
   requestFor: string;
+  /** Distinct Parameter Types of the request's parameters, in the order the API lists them. */
+  parameterTypes: readonly string[];
+  /** The branch or location of the request, e.g. "Gurgaon (GGN)"; shown as "Location" on the web. */
+  location: string;
+  /** Product / material name; shown as "Product" on the web. */
+  product: string;
+  remarks: string;
   /** Names of the assigned auditors, empty when unassigned. */
   assignedTo: string;
   auditorIds: readonly string[];
@@ -48,8 +55,10 @@ export interface AssessmentParameter {
   mandatory: boolean;
   /** Main parameter name; used to group parameters on the assess screen. */
   group: string;
-  /** Parameter type name, shown as the sub group. */
-  subGroup: string;
+  /** Parameter Type of the parameter (quick code "ParameterType"). */
+  parameterType: string;
+  /** Overall Grouping of the parameter, e.g. "Global Compliance Standards and Mandates". */
+  overallGrouping: string;
   responseKind: ResponseKind;
   options: readonly string[];
   status: string;
@@ -63,7 +72,6 @@ export interface AssessmentDetail extends AssessmentListItem {
   geoType: string;
   geoName: string;
   materialGroup: string;
-  remarks: string;
   auditors: readonly AuditorSummary[];
   parameters: readonly AssessmentParameter[];
 }
@@ -72,6 +80,16 @@ export interface AssessmentListQuery {
   status?: AssessmentStatus;
   /** Restrict the list to requests this user is assigned to audit. */
   assignedToUserId?: string;
+  /** Requests that contain a parameter of this Parameter Type (quick code "ParameterType"). */
+  parameterTypeId?: string;
+  /** Requests that contain a parameter in this Overall Grouping (quick code "GroupType"). */
+  overallGroupingId?: string;
+}
+
+/** Selected Parameter Type and Overall Grouping filters; each holds the chosen option's id. */
+export interface ParameterFilters {
+  parameterTypeId?: string;
+  overallGroupingId?: string;
 }
 
 export interface LookupOption {

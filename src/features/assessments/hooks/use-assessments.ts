@@ -31,7 +31,7 @@ export const useAssessmentList = (query: AssessmentListQuery): AssessmentListRes
   const session = useAuthStore((state) => state.session);
   const userId = session?.user.id ?? "";
   const result = useInfiniteQuery({
-    queryKey: [ASSESSMENTS_QUERY_KEY, userId, query.status ?? "all", query.assignedToUserId ?? "everyone"],
+    queryKey: [ASSESSMENTS_QUERY_KEY, userId, query.status ?? "all", query.assignedToUserId ?? "everyone", query.parameterTypeId ?? "any-type", query.overallGroupingId ?? "any-grouping"],
     queryFn: ({ pageParam }) => {
       if (!session) throw new Error("Your session has expired. Sign in again.");
       return assessmentRepository.list(session, query, pageParam);

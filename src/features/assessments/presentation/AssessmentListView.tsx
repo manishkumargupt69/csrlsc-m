@@ -4,7 +4,6 @@ import type { ListRenderItemInfo } from "react-native";
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, View } from "react-native";
 
 import AsyncStateView from "@/src/components/ui/AsyncStateView";
-import LastUpdatedLabel from "@/src/components/ui/LastUpdatedLabel";
 import SearchField from "@/src/components/ui/SearchField";
 import SegmentedControl from "@/src/components/motion/SegmentedControl";
 import type { SegmentOption } from "@/src/components/motion/SegmentedControl";
@@ -12,11 +11,14 @@ import type {
   AssessmentListItem,
   AssessmentListQuery,
   AssessmentStatus,
+  ParameterFilters,
 } from "@/src/features/assessments/domain/assessment.types";
 import { ASSESSMENT_STATUSES } from "@/src/features/assessments/domain/assessment.types";
 import { matchesAssessmentSearch } from "@/src/features/assessments/domain/assessment-search";
 import { useAssessmentList } from "@/src/features/assessments/hooks/use-assessments";
 import AssessmentCard from "@/src/features/assessments/presentation/AssessmentCard";
+import { useQuickCodes } from "@/src/features/assessments/hooks/use-lookups";
+import ParameterFilterBar from "@/src/features/assessments/presentation/ParameterFilterBar";
 import { COLORS, SCREEN_HORIZONTAL_PADDING, SPACING } from "@/src/theme/tokens";
 import { useScreenInsets } from "@/src/components/ui/ScreenContainer";
 
@@ -32,6 +34,8 @@ interface AssessmentListViewProps {
   canAssess?: (item: AssessmentListItem) => boolean;
   onAssess?: (item: AssessmentListItem) => void;
   header?: ReactElement;
+  /** Adds the Parameter Type and Overall Grouping filters. */
+  showParameterFilters?: boolean;
 }
 
 const getItemKey = (item: AssessmentListItem): string => item.id;
@@ -54,9 +58,14 @@ export default function AssessmentListView({
   canAssess,
   onAssess,
   header,
+  showParameterFilters = false,
 }: AssessmentListViewProps): ReactElement {
   const insets = useScreenInsets();
-  const list = useAssessmentList({ ...query, status: statusFilter });
+  const [parameterFilters, setParameterFilters] = useState<ParameterFilters>({});
+  // Options come from the parameter master's quick codes; the server filters requests by parameter.
+  const parameterTypeOptions = useQuickCodes("ParameterType");
+  const groupingOptions = useQuickCodes("GroupType");
+  const list = useAssessmentList({ ...query, status: statusFilter, ...parameterFilters });
   const { refresh } = list;
   const [search, setSearch] = useState("");
   const handleClearSearch = useCallback((): void => setSearch(""), []);
@@ -96,7 +105,7 @@ export default function AssessmentListView({
         options={STATUS_OPTIONS}
         value={statusFilter ?? "All"}
       />
-      <LastUpdatedLabel isRefreshing={list.isRefreshing} updatedAt={list.updatedAt} />
+      {showParameterFilters ? <ParameterFilterBar groupings={groupingOptions} onChange={setParameterFilters} parameterTypes={parameterTypeOptions} value={parameterFilters} /> : null}
     </>
   );
 
@@ -141,7 +150,7 @@ export default function AssessmentListView({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   list: { gap: SPACING.medium, paddingBottom: SPACING.section, paddingHorizontal: SCREEN_HORIZONTAL_PADDING },
-  header: { gap: SPACING.medium, paddingBottom: SPACING.small, paddingTop: SPACING.large },
+  header: { gap: SPACING.medium, paddingTop: SPACING.large },
   footer: { paddingVertical: SPACING.large },
   state: { flex: 1, gap: SPACING.medium, paddingHorizontal: SCREEN_HORIZONTAL_PADDING, paddingTop: SPACING.large },
 });

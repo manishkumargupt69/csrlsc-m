@@ -14,7 +14,7 @@ import { useAuthStore } from "@/src/features/auth/state/auth-store";
 import { getAssessmentPermissions } from "@/src/features/modules/domain/mobile-modules";
 
 const ASSESSMENT_QUERY = {};
-const FILTERABLE_STATUSES: readonly AssessmentStatus[] = ["Pending", "Assigned", "Completed"];
+const FILTERABLE_STATUSES: readonly AssessmentStatus[] = ["Pending", "Assigned", "In Progress", "Completed"];
 
 const parseStatus = (value: string | undefined): AssessmentStatus | undefined =>
   FILTERABLE_STATUSES.find((status) => status === value);
@@ -45,7 +45,7 @@ export default function AssessmentRequestsScreen(): ReactElement {
   }, []);
   const canAssess = useCallback(
     (item: AssessmentListItem): boolean =>
-      item.status === "Assigned" && (isAdmin || item.auditorIds.includes(userId)),
+      isAdmin || item.auditorIds.includes(userId),
     [isAdmin, userId],
   );
 
@@ -55,12 +55,13 @@ export default function AssessmentRequestsScreen(): ReactElement {
       <AssessmentListView
         canAssess={canAssess}
         emptyMessage="No assessment requests yet."
-        header={canManage ? <View style={styles.create}><PrimaryButton label="Create request" onPress={handleCreate} /></View> : undefined}
+        header={canManage ? <View style={styles.create}><PrimaryButton iconName="plus" label="Create request" onPress={handleCreate} /></View> : undefined}
         onAssess={handleAssess}
         onAssign={canManage ? openAssign : undefined}
         onStatusFilterChange={setStatusFilter}
         onView={handleView}
         query={ASSESSMENT_QUERY}
+        showParameterFilters
         showProgress={false}
         statusFilter={statusFilter}
       />

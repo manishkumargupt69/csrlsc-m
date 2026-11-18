@@ -13,7 +13,7 @@ const ALL_REQUESTS = {};
 
 export default function AssessRequestScreen(): ReactElement {
   const session = useAuthStore((state) => state.session);
-  // Opens on "Assigned": the requests that are ready to be assessed. "All" is one tap away.
+  // Opens on "Assigned": the requests that are ready to be audited. "All" is one tap away.
   const [statusFilter, setStatusFilter] = useState<AssessmentStatus | undefined>("Assigned");
   const userId = session?.user.id ?? "";
   const isAdmin = session?.user.isAdmin ?? false;
@@ -26,7 +26,7 @@ export default function AssessRequestScreen(): ReactElement {
   const handleAssess = useCallback((item: AssessmentListItem): void => {
     router.push({ pathname: "/(app)/assessments/[id]/assess", params: { id: item.id } });
   }, []);
-  const canAssess = useCallback((item: AssessmentListItem): boolean => item.status === "Assigned", []);
+  const canAssess = useCallback((): boolean => true, []);
 
   return (
     <ScreenContainer>

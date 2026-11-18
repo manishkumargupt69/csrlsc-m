@@ -4,7 +4,7 @@ import type { AssessmentListItem } from "@/src/features/assessments/domain/asses
 export const matchesAssessmentSearch = (item: AssessmentListItem, search: string): boolean => {
   const words = search.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   if (words.length === 0) return true;
-  const haystack = [item.assessmentNo, item.requestedBy, item.requestFor, item.service, item.subService, item.domain, item.assignedTo]
+  const haystack = [item.assessmentNo, item.requestedBy, item.requestFor, item.service, item.subService, item.domain, item.location, item.product, item.assignedTo, ...item.parameterTypes]
     .join(" ")
     .toLocaleLowerCase();
   return words.every((word) => haystack.includes(word));

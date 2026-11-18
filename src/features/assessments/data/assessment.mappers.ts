@@ -35,7 +35,7 @@ const getAuditors = (raw: Record<string, unknown>): AuditorSummary[] =>
     const record = asRecord(entry);
     const id = asString(record.auditorId);
     if (!id) return [];
-    return [{ id, name: asString(asRecord(record.auditor).nameCode) || "Auditor" }];
+    return [{ id, name: asString(asRecord(record.auditor).nameCode) }];
   });
 
 export const mapParameter = (rawParameter: unknown): AssessmentParameter => {
@@ -49,14 +49,15 @@ export const mapParameter = (rawParameter: unknown): AssessmentParameter => {
     id: asString(raw.id),
     code: asString(raw.parameterCode),
     title: asString(raw.subParameter),
-    question: asString(raw.questions) || asString(raw.parameterAssessment),
+    question: asString(raw.questions),
     hint: asString(raw.hintForParameter),
     mandatory: raw.mandatory === true,
-    group: asString(asRecord(raw.mainParameter).codeValue) || "General",
-    subGroup: asString(asRecord(raw.parameterType).codeValue),
+    group: asString(asRecord(raw.mainParameter).codeValue),
+    parameterType: asString(asRecord(raw.parameterType).codeValue),
+    overallGrouping: asString(asRecord(raw.overallGroupingValue).codeValue),
     responseKind: getResponseKind(asString(asRecord(raw.responseType).codeValue)),
     options,
-    status: asString(raw.status) || "Pending",
+    status: asString(raw.status),
     rating: asNumberOrNull(raw.rating),
     answer: asString(raw.answer),
     remarks: asString(raw.remarks),
@@ -74,12 +75,16 @@ export const mapListItem = (rawItem: unknown): AssessmentListItem => {
     assessmentNo: asString(raw.assessmentNo),
     requestedBy: asString(asRecord(raw.demandedBy).companyName),
     requestFor: asString(asRecord(raw.assesmentOf).companyName),
+    parameterTypes: [...new Set(parameters.map((parameter) => asString(asRecord(parameter.parameterType).codeValue)).filter(Boolean))],
     assignedTo: auditors.map((auditor) => auditor.name).join(", "),
     auditorIds: auditors.map((auditor) => auditor.id),
     service: asString(asRecord(raw.service).nameCode),
     subService: asString(asRecord(raw.subService).name),
     domain: asString(asRecord(raw.domain).codeValue),
-    status: asString(raw.status) || "Pending",
+    location: asString(asRecord(raw.location).nameCode),
+    product: asString(asRecord(raw.material).nameCode),
+    remarks: asString(raw.remarks),
+    status: asString(raw.status),
     toBeCompletedBy: asString(raw.toBeCompletedBy),
     totalParameters: parameters.length,
     auditedParameters,
@@ -100,7 +105,6 @@ export const mapDetail = (rawItem: unknown): AssessmentDetail => {
     geoType: asString(asRecord(raw.geoType).codeValue),
     geoName: asString(raw.geoName),
     materialGroup: asString(asRecord(raw.materialGroup).codeValue),
-    remarks: asString(raw.remarks),
     auditors: getAuditors(raw),
     parameters,
   };

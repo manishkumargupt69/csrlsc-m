@@ -37,7 +37,7 @@ export default function AssignAuditorSheet({ assign }: AssignAuditorSheetProps):
 
   return (
     <>
-      <BottomSheetModal accessibilityLabel="Close assign auditor" isVisible={assign.isVisible && !isPickerVisible} onClose={assign.close} subtitle={target ? target.assessmentNo : undefined} title="Assign auditor">
+      <BottomSheetModal accessibilityLabel="Close assign auditor" isVisible={assign.isVisible && !isPickerVisible} onClose={assign.close} subtitle={target ? target.assessmentNo : undefined} title="Assign Auditor">
         <View style={styles.sheet}>
           <SelectField
             iconName="user-plus"
@@ -48,7 +48,7 @@ export default function AssignAuditorSheet({ assign }: AssignAuditorSheetProps):
           />
           {assign.validationMessage ? <Text accessibilityLiveRegion="polite" style={styles.error}>{assign.validationMessage}</Text> : null}
           <FormField isMultiline label="Remarks" onChangeText={assign.setRemarks} placeholder="Add remarks (optional)" textCapitalization="sentences" value={assign.remarks} />
-          <PrimaryButton isLoading={assign.isSubmitting} label="Assign" onPress={handleSubmit} />
+          <PrimaryButton isLoading={assign.isSubmitting} iconName="user-check" label="Submit" onPress={handleSubmit} />
         </View>
       </BottomSheetModal>
       <OptionPickerSheet

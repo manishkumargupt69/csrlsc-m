@@ -11,6 +11,7 @@ export const getStatusTone = (status: string): StatusTone => {
     case "Audited":
       return "success";
     case "Assigned":
+    case "In Progress":
       return "info";
     case "Pending":
       return "warning";
@@ -26,6 +27,8 @@ export const getStatusColor = (status: string): string => {
       return COLORS.successInk;
     case "Assigned":
       return COLORS.accent;
+    case "In Progress":
+      return COLORS.statusNavy;
     case "Pending":
       return COLORS.warningInk;
     default:
@@ -41,6 +44,8 @@ export const getStatusIcon = (status: string): ComponentProps<typeof Feather>["n
       return "check-circle";
     case "Assigned":
       return "user-check";
+    case "In Progress":
+      return "play-circle";
     case "Pending":
       return "clock";
     default:

@@ -29,13 +29,13 @@ type ActivePicker = CreateField | "completeBy" | null;
 
 const PICKER_TITLES: Readonly<Record<CreateField, string>> = {
   service: "Service",
-  subService: "Sub service",
+  subService: "Sub Service",
   domain: "Domain",
-  materialGroup: "Material",
-  geoType: "Location type",
-  geoName: "Location",
-  demandedBy: "Demanded by",
-  assessmentOf: "Assessment of",
+  materialGroup: "Material Group",
+  geoType: "Geo Type",
+  geoName: "Geo Name",
+  demandedBy: "Demanded By",
+  assessmentOf: "Assessment Of",
 };
 
 interface FieldProps {
@@ -50,13 +50,13 @@ interface FieldProps {
 
 const FIELD_ICONS = {
   Service: "truck",
-  "Sub service": "layers",
+  "Sub Service": "layers",
   Domain: "grid",
-  Material: "package",
-  "Location type": "map",
-  Locations: "map-pin",
-  "Demanded by": "briefcase",
-  "Assessment of": "target",
+  "Material Group": "package",
+  "Geo Type": "map",
+  "Geo Name": "map-pin",
+  "Demanded By": "briefcase",
+  "Assessment Of": "target",
 } as const;
 
 function Field({ label, option, placeholder, errorMessage, isDisabled, isRequired = true, onPress }: FieldProps): ReactElement {
@@ -130,18 +130,18 @@ export default function NewAssessmentScreen(): ReactElement {
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.large, paddingBottom: insets.bottom + SPACING.section }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Text style={styles.legend}>Fields marked * are required.</Text>
         <Field errorMessage={errorFor("service")} label="Service" onPress={openPicker("service")} option={state.service} placeholder="Select service" />
-        <Field errorMessage={errorFor("subService")} isDisabled={!state.service} label="Sub service" onPress={openPicker("subService")} option={state.subService} placeholder={state.service ? "Select sub service" : "Select a service first"} />
+        <Field errorMessage={errorFor("subService")} isDisabled={!state.service} label="Sub Service" onPress={openPicker("subService")} option={state.subService} placeholder={state.service ? "Select sub service" : "Select a service first"} />
         <Field errorMessage={errorFor("domain")} label="Domain" onPress={openPicker("domain")} option={state.domain} placeholder="Select domain" />
-        <Field isRequired={false} label="Material" onPress={openPicker("materialGroup")} option={state.materialGroup} placeholder="Select material (optional)" />
-        <Field errorMessage={errorFor("geoType")} label="Location type" onPress={openPicker("geoType")} option={state.geoType} placeholder="Select location type" />
-        <Field errorMessage={errorFor("geoName")} isDisabled={!form.geoTypeName} label="Locations" onPress={openPicker("geoName")} option={state.geoName} placeholder={form.geoTypeName ? "Select location" : "Select a location type first"} />
-        <Field errorMessage={errorFor("demandedBy")} label="Demanded by" onPress={openPicker("demandedBy")} option={state.demandedBy} placeholder="Select company" />
-        <Field errorMessage={errorFor("assessmentOf")} label="Assessment of" onPress={openPicker("assessmentOf")} option={state.assessmentOf} placeholder="Select company" />
+        <Field isRequired={false} label="Material Group" onPress={openPicker("materialGroup")} option={state.materialGroup} placeholder="Select material group" />
+        <Field errorMessage={errorFor("geoType")} label="Geo Type" onPress={openPicker("geoType")} option={state.geoType} placeholder="Select geo type" />
+        <Field errorMessage={errorFor("geoName")} isDisabled={!form.geoTypeName} label="Geo Name" onPress={openPicker("geoName")} option={state.geoName} placeholder={form.geoTypeName ? "Select geo name" : "Select a geo type first"} />
+        <Field errorMessage={errorFor("demandedBy")} label="Demanded By" onPress={openPicker("demandedBy")} option={state.demandedBy} placeholder="Select company" />
+        <Field errorMessage={errorFor("assessmentOf")} label="Assessment Of" onPress={openPicker("assessmentOf")} option={state.assessmentOf} placeholder="Select company" />
         <View style={styles.field}>
           <SelectField
             iconName="calendar"
             isRequired
-            label="Completed by"
+            label="To Be Completed By"
             onPress={() => setActivePicker("completeBy")}
             placeholder="Choose a date"
             value={state.completeBy ? formatDate(state.completeBy.toISOString()) : ""}
@@ -153,7 +153,7 @@ export default function NewAssessmentScreen(): ReactElement {
         </Text>
       </ScrollView>
       <View style={styles.footer}>
-        <PrimaryButton isLoading={form.isSubmitting} label="Submit" onPress={handleSubmit} />
+        <PrimaryButton iconName="check" isLoading={form.isSubmitting} label="Save" onPress={handleSubmit} />
       </View>
 
       <OptionPickerSheet
@@ -172,7 +172,7 @@ export default function NewAssessmentScreen(): ReactElement {
         minimumDate={getMinimumCompletionDate()}
         onClose={closePicker}
         onConfirm={form.setCompleteBy}
-        title="Completed by"
+        title="To Be Completed By"
         value={state.completeBy}
       />
     </ScreenContainer>
