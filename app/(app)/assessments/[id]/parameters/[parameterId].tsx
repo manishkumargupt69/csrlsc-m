@@ -1,29 +1,27 @@
 import type { ReactElement } from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Keyboard, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
 import AsyncStateView from "@/src/components/ui/AsyncStateView";
 import BottomSheetModal from "@/src/components/ui/BottomSheetModal";
 import DetailHeader from "@/src/components/ui/DetailHeader";
-import InfoRow, { InfoGroup } from "@/src/components/ui/InfoRow";
 import MediaAttachmentTray from "@/src/components/ui/MediaAttachmentTray";
 import PrimaryButton from "@/src/components/ui/PrimaryButton";
 import ScreenContainer, { useScreenInsets } from "@/src/components/ui/ScreenContainer";
 import SecondaryButton from "@/src/components/ui/SecondaryButton";
-import StatusBadge from "@/src/components/ui/StatusBadge";
 import type { AssessmentParameter, AuditDraft } from "@/src/features/assessments/domain/assessment.types";
 import { getInitialDraft } from "@/src/features/assessments/hooks/use-assessment-audit";
 import { useAssessmentDetail } from "@/src/features/assessments/hooks/use-assessments";
 import ParameterForm from "@/src/features/assessments/presentation/ParameterForm";
-import { getStatusTone } from "@/src/features/assessments/presentation/status-tone";
+import AssessmentSummaryCard from "@/src/features/assessments/presentation/AssessmentSummaryCard";
+import { getRequestDetails } from "@/src/features/assessments/presentation/request-details";
 import { EMPTY_DRAFTS, useAuditDraftStore } from "@/src/features/assessments/state/audit-draft-store";
 import EvidenceCameraModal from "@/src/features/evidence/presentation/EvidenceCameraModal";
 import { useEvidenceCapture } from "@/src/features/evidence/hooks/use-evidence-capture";
 import { useUnsavedChanges } from "@/src/hooks/use-unsaved-changes";
 import { COLORS, RADII, SCREEN_HORIZONTAL_PADDING, SPACING, TYPOGRAPHY } from "@/src/theme/tokens";
 import type { EvidenceAttachment } from "@/src/types/evidence";
-import { formatDate } from "@/src/utils/format-date-time";
 
 type ParameterParams = { id?: string; parameterId?: string };
 
@@ -81,6 +79,36 @@ export default function ParameterScreen(): ReactElement {
     router.back();
   }, [allowNavigation, draft, evidence.attachments, id, parameter, setStoredDraft]);
 
+  /*
+   * Android draws edge to edge, so the window no longer shrinks for the keyboard and it would cover Rating
+   * Remarks. While it is open the form gets extra room at the bottom, as tall as the keyboard, and focusing
+   * Remarks scrolls it into view above the keyboard.
+   */
+  const scrollRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const isRemarksFocused = useRef(false);
+  useEffect(() => {
+    const shown = Keyboard.addListener("keyboardDidShow", (event) => setKeyboardHeight(event.endCoordinates.height));
+    const hidden = Keyboard.addListener("keyboardDidHide", () => {
+      isRemarksFocused.current = false;
+      setKeyboardHeight(0);
+    });
+    return () => {
+      shown.remove();
+      hidden.remove();
+    };
+  }, []);
+  useEffect(() => {
+    if (keyboardHeight > 0 && isRemarksFocused.current) {
+      // Wait a frame for the added room to lay out before scrolling to it.
+      requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
+    }
+  }, [keyboardHeight]);
+  const handleRemarksFocus = useCallback((): void => {
+    isRemarksFocused.current = true;
+    if (Keyboard.isVisible()) scrollRef.current?.scrollToEnd({ animated: true });
+  }, []);
+
   const attachmentCount = evidence.attachments.length;
   const evidenceLabel = attachmentCount > 0 ? "Photo / Video / Voice note (" + attachmentCount + ")" : "Photo / Video / Voice note";
 
@@ -88,16 +116,17 @@ export default function ParameterScreen(): ReactElement {
     <ScreenContainer>
       <DetailHeader onBack={handleBack} title="Parameter" />
       {assessment && parameter && draft ? (
-        <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.large, paddingBottom: insets.bottom + SPACING.section }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <InfoGroup>
-            <InfoRow iconName="hash" label="Request#" value={assessment.assessmentNo} />
-            <InfoRow iconName="folder" label="Work group" value={parameter.group} />
-            <InfoRow iconName="layers" label="Sub group" value={parameter.subGroup} />
-            <InfoRow iconName="check-square" label="Work item" value={parameter.title} />
-            <InfoRow iconName="calendar" label="Target completion" value={formatDate(assessment.toBeCompletedBy)} />
-            <InfoRow iconName="flag" label="Status"><StatusBadge label={parameter.status} tone={getStatusTone(parameter.status)} /></InfoRow>
-          </InfoGroup>
-          <ParameterForm draft={draft} onChange={handleChange} parameter={parameter} ratingError={ratingError} />
+        <ScrollView ref={scrollRef} contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.large, paddingBottom: insets.bottom + SPACING.section + keyboardHeight }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <AssessmentSummaryCard
+            assessmentNo={assessment.assessmentNo}
+            details={getRequestDetails(assessment)}
+            mainParameter={parameter.group}
+            parameterCode={parameter.code}
+            status={parameter.status}
+            subParameter={parameter.title}
+            toBeCompletedBy={assessment.toBeCompletedBy}
+          />
+          <ParameterForm draft={draft} onChange={handleChange} onRemarksFocus={handleRemarksFocus} parameter={parameter} ratingError={ratingError} />
           <SecondaryButton iconName="paperclip" label={evidenceLabel} onPress={evidence.openEvidence} />
           {parameter.documentUrls.length > 0 ? (
             <Text style={styles.existing}>{parameter.documentUrls.length} file(s) already attached to this parameter.</Text>
@@ -117,7 +146,7 @@ export default function ParameterScreen(): ReactElement {
       {assessment && parameter && draft ? (
         <View style={styles.footer}>
           {evidence.preparation ? <Text accessibilityLiveRegion="polite" style={styles.footerStatus}>Preparing evidence…</Text> : null}
-          <PrimaryButton isDisabled={Boolean(evidence.preparation) || evidence.isRecording} label="Apply" onPress={handleApply} />
+          <PrimaryButton isDisabled={Boolean(evidence.preparation) || evidence.isRecording} iconName="check" label="Apply" onPress={handleApply} />
         </View>
       ) : null}
       <BottomSheetModal accessibilityLabel="Close evidence" isVisible={evidence.isEvidenceVisible} onClose={evidence.closeEvidence} onDismiss={evidence.handleEvidenceDismiss} title="Evidence">

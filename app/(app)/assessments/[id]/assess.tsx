@@ -1,28 +1,29 @@
 import type { ReactElement } from "react";
-import { useCallback, useMemo } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCallback } from "react";
+import { Alert, StyleSheet, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
 import AsyncStateView from "@/src/components/ui/AsyncStateView";
 import DetailHeader from "@/src/components/ui/DetailHeader";
-import InfoRow, { InfoGroup } from "@/src/components/ui/InfoRow";
 import PrimaryButton from "@/src/components/ui/PrimaryButton";
 import ParameterProgress from "@/src/features/assessments/presentation/ParameterProgress";
 import ScreenContainer, { useScreenInsets } from "@/src/components/ui/ScreenContainer";
-import StatusBadge from "@/src/components/ui/StatusBadge";
-import { groupParameters } from "@/src/features/assessments/data/assessment.mappers";
 import type { AssessmentParameter } from "@/src/features/assessments/domain/assessment.types";
 import { useAssessmentAudit } from "@/src/features/assessments/hooks/use-assessment-audit";
 import { useAssessmentDetail } from "@/src/features/assessments/hooks/use-assessments";
-import ParameterRow from "@/src/features/assessments/presentation/ParameterRow";
-import { getStatusTone } from "@/src/features/assessments/presentation/status-tone";
+import ParameterList from "@/src/features/assessments/presentation/ParameterList";
+import ParameterFilterBar from "@/src/features/assessments/presentation/ParameterFilterBar";
+import { useParameterFilter } from "@/src/features/assessments/hooks/use-parameter-filter";
+import AssessmentSummaryCard from "@/src/features/assessments/presentation/AssessmentSummaryCard";
+import { getRequestDetails } from "@/src/features/assessments/presentation/request-details";
 import { useUnsavedChanges } from "@/src/hooks/use-unsaved-changes";
-import { COLORS, RADII, SCREEN_HORIZONTAL_PADDING, SPACING, TYPOGRAPHY } from "@/src/theme/tokens";
-import { formatDate } from "@/src/utils/format-date-time";
+import { COLORS, RADII, SCREEN_HORIZONTAL_PADDING, SPACING } from "@/src/theme/tokens";
 import { showSuccessMessage } from "@/src/utils/show-success-message";
 
 type AssessParams = { id?: string };
 
+
+const NO_PARAMETERS: readonly AssessmentParameter[] = [];
 export default function AssessScreen(): ReactElement {
   const insets = useScreenInsets();
   const { id = "" } = useLocalSearchParams<AssessParams>();
@@ -30,8 +31,7 @@ export default function AssessScreen(): ReactElement {
   const assessment = viewState.status === "success" ? viewState.data : null;
   const audit = useAssessmentAudit(assessment);
   const allowNavigation = useUnsavedChanges(audit.touchedCount > 0);
-  const groups = useMemo(() => groupParameters(assessment?.parameters ?? []), [assessment]);
-  const isLocked = assessment !== null && assessment.status !== "Assigned";
+  const parameterFilter = useParameterFilter(assessment?.parameters ?? NO_PARAMETERS);
 
   const handleBack = useCallback((): void => router.back(), []);
   const handleOpenParameter = useCallback((parameter: AssessmentParameter): void => {
@@ -52,37 +52,31 @@ export default function AssessScreen(): ReactElement {
 
   return (
     <ScreenContainer>
-      <DetailHeader onBack={handleBack} title="Assess Request" />
+      <DetailHeader onBack={handleBack} title="Audit Assessment" />
       {assessment ? (
-        <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.large, paddingBottom: insets.bottom + SPACING.section }]} showsVerticalScrollIndicator={false}>
-          <InfoGroup>
-            <InfoRow iconName="hash" label="Request#" value={assessment.assessmentNo} />
-            <InfoRow iconName="calendar" label="Target completion" value={formatDate(assessment.toBeCompletedBy)} />
-            <InfoRow iconName="flag" label="Status"><StatusBadge label={assessment.status} tone={getStatusTone(assessment.status)} /></InfoRow>
-          </InfoGroup>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Progress</Text>
-            <ParameterProgress assessed={assessment.auditedParameters} percent={assessment.completionPercent} total={assessment.totalParameters} />
-          </View>
-          {isLocked ? <Text style={styles.notice}>This request is {assessment.status.toLocaleLowerCase()}, so it can no longer be assessed.</Text> : null}
-          {groups.map((group) => (
-            <View key={group.group} style={styles.group}>
-              <Text style={styles.groupTitle}>{group.group}</Text>
-              {group.parameters.map((parameter) => {
-                const draft = audit.drafts[parameter.id];
-                return (
-                  <ParameterRow
-                    key={parameter.id}
-                    hasDraft={Boolean(draft)}
-                    onPress={isLocked ? undefined : handleOpenParameter}
-                    parameter={parameter}
-                    rating={draft ? draft.rating : parameter.rating}
-                  />
-                );
-              })}
-            </View>
-          ))}
-        </ScrollView>
+        <ParameterList
+          contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACING.large, paddingBottom: insets.bottom + SPACING.section }]}
+          drafts={audit.drafts}
+          emptyMessage={parameterFilter.isFiltering ? "No parameters match these filters." : "No parameters are attached to this request."}
+          header={
+            <>
+              <AssessmentSummaryCard assessmentNo={assessment.assessmentNo} details={getRequestDetails(assessment)} status={assessment.status} toBeCompletedBy={assessment.toBeCompletedBy} />
+              <View style={styles.card}>
+                <ParameterProgress assessed={assessment.auditedParameters} percent={assessment.completionPercent} total={assessment.totalParameters} />
+              </View>
+              {assessment.parameters.length > 0 ? (
+                <ParameterFilterBar
+                  groupings={parameterFilter.groupings}
+                  onChange={parameterFilter.setFilters}
+                  parameterTypes={parameterFilter.parameterTypes}
+                  value={parameterFilter.filters}
+                />
+              ) : null}
+            </>
+          }
+          onOpen={handleOpenParameter}
+          parameters={parameterFilter.filtered}
+        />
       ) : (
         <View style={styles.state}>
           <AsyncStateView
@@ -94,9 +88,10 @@ export default function AssessScreen(): ReactElement {
           />
         </View>
       )}
-      {assessment && !isLocked ? (
+      {assessment ? (
         <View style={styles.footer}>
           <PrimaryButton
+            iconName="upload-cloud"
             isDisabled={audit.touchedCount === 0}
             isLoading={audit.isSaving}
             label={audit.touchedCount > 0 ? "Save audit (" + audit.touchedCount + ")" : "Save audit"}
@@ -109,12 +104,8 @@ export default function AssessScreen(): ReactElement {
 }
 
 const styles = StyleSheet.create({
-  content: { gap: SPACING.large, padding: SCREEN_HORIZONTAL_PADDING },
+  content: { paddingHorizontal: SCREEN_HORIZONTAL_PADDING },
   state: { flex: 1, paddingHorizontal: SCREEN_HORIZONTAL_PADDING },
-  card: { backgroundColor: COLORS.surface, borderColor: COLORS.border, borderRadius: RADII.large, borderWidth: StyleSheet.hairlineWidth, gap: SPACING.medium, padding: SPACING.large },
-  cardTitle: { color: COLORS.ink, ...TYPOGRAPHY.control, fontWeight: "800" },
-  notice: { color: COLORS.inkMuted, ...TYPOGRAPHY.body },
-  group: { backgroundColor: COLORS.surface, borderColor: COLORS.border, borderRadius: RADII.large, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
-  groupTitle: { backgroundColor: COLORS.accentSoft, color: COLORS.accent, ...TYPOGRAPHY.body, fontWeight: "700", paddingHorizontal: SPACING.large, paddingVertical: SPACING.small },
+  card: { backgroundColor: COLORS.surface, borderColor: COLORS.border, borderRadius: RADII.large, borderWidth: StyleSheet.hairlineWidth, gap: SPACING.medium, padding: SPACING.medium },
   footer: { backgroundColor: COLORS.surface, borderTopColor: COLORS.border, borderTopWidth: StyleSheet.hairlineWidth, padding: SCREEN_HORIZONTAL_PADDING },
 });

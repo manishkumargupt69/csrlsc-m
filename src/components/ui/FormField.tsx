@@ -26,11 +26,13 @@ interface FormFieldProps {
   textCapitalization?: "none" | "sentences";
   /** Marks the field with an asterisk and announces it as required. */
   isRequired?: boolean;
+  onFocus?: () => void;
 }
 
 function FormField({
   label,
   isRequired = false,
+  onFocus,
   value,
   onChangeText,
   placeholder,
@@ -55,6 +57,7 @@ function FormField({
         <TextInput
           accessibilityLabel={isRequired ? label + ", required" : label}
           autoCapitalize={textCapitalization}
+          onFocus={onFocus}
           autoCorrect={false}
           inputMode={keyboardType === "number-pad" ? "numeric" : undefined}
           keyboardType={keyboardType}

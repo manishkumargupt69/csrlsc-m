@@ -47,11 +47,11 @@ export default function AssessProgressOverview(): ReactElement | null {
     <Reveal>
       <View style={styles.card}>
         <View style={styles.titleRow}>
-          <Text accessibilityRole="header" style={styles.title}>Parameters assessed</Text>
+          <Text accessibilityRole="header" style={styles.title}>Parameters audited</Text>
           <Text style={styles.percent}>{parameters.percent}%</Text>
         </View>
         <ProgressBar
-          accessibilityLabel={"Assessed " + parameters.assessed + " of " + parameters.total + " parameters"}
+          accessibilityLabel={"Audited " + parameters.assessed + " of " + parameters.total + " parameters"}
           percent={parameters.percent}
           tone="success"
         />
