@@ -95,6 +95,7 @@ export default function SetMpinModal({
           ) : null}
           <PrimaryButton
             isLoading={isSubmitting}
+            iconName="check"
             label="Set MPIN"
             onPress={onSubmit}
           />

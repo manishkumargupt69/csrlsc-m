@@ -83,7 +83,7 @@ function EvidenceCameraModal({ isVisible, onClose, onDismiss, onCaptured }: Evid
             {camera.isCheckingPermission ? <ActivityIndicator color={COLORS.white} size="large" /> : <Feather color={COLORS.white} name="camera" size={36} />}
             <Text style={styles.permissionTitle}>Camera access needed</Text>
             <Text style={styles.permissionMessage}>Allow camera access to take photos or record videos as evidence.</Text>
-            {!camera.isCheckingPermission ? <PrimaryButton label="Allow camera" onPress={handleRequestAccess} /> : null}
+            {!camera.isCheckingPermission ? <PrimaryButton iconName="camera" label="Allow camera" onPress={handleRequestAccess} /> : null}
             {camera.error ? <Text accessibilityLiveRegion="polite" style={styles.error}>{camera.error}</Text> : null}
           </View>
         )}

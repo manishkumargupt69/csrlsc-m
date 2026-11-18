@@ -94,7 +94,8 @@ export default function ChangePasswordModal({
             ) : null}
             <PrimaryButton
               isLoading={isSubmitting}
-              label="Change password"
+              iconName="check"
+            label="Change password"
               onPress={onSubmit}
             />
         </View>

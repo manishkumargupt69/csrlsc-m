@@ -10,6 +10,7 @@ export const COLORS = {
   accent: "#64121D",
   accentPressed: "#4A0C16",
   accentSoft: "#F7E9EB",
+  accentSoftPressed: "#EED6DA",
   maroonDark: "#4A0C16",
   gold: "#FFBD4A",
   onMaroonMuted: "rgba(255, 255, 255, 0.72)",

@@ -28,7 +28,7 @@ export default function AsyncStateView({ emptyMessage, message, onRetry, status,
     <View style={variant === "list" ? styles.listState : styles.error}>
       {variant === "list" ? <Feather color={COLORS.inkMuted} name="alert-circle" size={36} /> : null}
       <Text accessibilityLiveRegion="polite" style={variant === "list" ? styles.listMessage : styles.message}>{message || "This content could not be loaded."}</Text>
-      <PrimaryButton label="Try again" onPress={onRetry} />
+      <PrimaryButton iconName="refresh-cw" label="Try again" onPress={onRetry} />
     </View>
   );
 }

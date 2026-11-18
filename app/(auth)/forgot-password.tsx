@@ -42,13 +42,13 @@ export default function ForgotPasswordScreen(): ReactElement {
             {form.step === "mobile" ? (
               <>
                 <FormField errorMessage={errors.mobile} keyboardType="phone-pad" label="Mobile number" maxLength={10} onChangeText={handleMobile} placeholder="10-digit mobile number" value={fields.mobile} />
-                <PrimaryButton isLoading={form.isSubmitting} label="Send passcode" onPress={form.sendOtp} />
+                <PrimaryButton isLoading={form.isSubmitting} iconName="send" label="Send passcode" onPress={form.sendOtp} />
               </>
             ) : null}
             {form.step === "otp" ? (
               <>
                 <FormField errorMessage={errors.otp} keyboardType="number-pad" label="Passcode" maxLength={8} onChangeText={handleOtp} placeholder="Enter passcode" value={fields.otp} />
-                <PrimaryButton isLoading={form.isSubmitting} label="Verify" onPress={form.verifyOtp} />
+                <PrimaryButton isLoading={form.isSubmitting} iconName="shield" label="Verify" onPress={form.verifyOtp} />
                 <Pressable accessibilityRole="button" onPress={form.backToMobile} style={styles.link}>
                   <Text style={styles.linkLabel}>Use a different number</Text>
                 </Pressable>
@@ -58,7 +58,7 @@ export default function ForgotPasswordScreen(): ReactElement {
               <>
                 <FormField allowsSecureTextReveal errorMessage={errors.newPassword} isSecure label="New password" onChangeText={handleNewPassword} placeholder="Enter new password" value={fields.newPassword} />
                 <FormField allowsSecureTextReveal errorMessage={errors.confirmation} isSecure label="Confirm password" onChangeText={handleConfirmation} placeholder="Re-enter new password" value={fields.confirmation} />
-                <PrimaryButton isLoading={form.isSubmitting} label="Reset password" onPress={form.resetPassword} />
+                <PrimaryButton isLoading={form.isSubmitting} iconName="lock" label="Reset password" onPress={form.resetPassword} />
               </>
             ) : null}
             {form.notice ? <Text accessibilityLiveRegion="polite" style={styles.notice}>{form.notice}</Text> : null}

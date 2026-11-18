@@ -35,7 +35,7 @@ export default function IncidentsScreen(): ReactElement {
       <View style={[styles.state, { paddingTop: insets.top }]}>
         <View style={styles.header}>
           <Text style={styles.notice}>Not implemented yet. Incidents are not saved or listed until the incident service is connected.</Text>
-          <PrimaryButton label="Report incident" onPress={handleReport} />
+          <PrimaryButton iconName="plus" label="Report incident" onPress={handleReport} />
           <View style={styles.searchRow}>
             <SearchField accessibilityLabel="Search incidents" onChangeText={setSearch} onClear={handleClear} placeholder="Search incidents" value={search} />
           </View>

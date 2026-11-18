@@ -7,7 +7,7 @@ import { COLORS, MINIMUM_TOUCH_SIZE, RADII, SPACING, TYPOGRAPHY } from "@/src/th
 interface ActionButtonProps {
   label: string;
   iconName: ComponentProps<typeof Feather>["name"];
-  /** "primary" is the one next step on a card; the others sit beside it as outlined buttons. */
+  /** "primary" is the one next step on a card (solid maroon); the others sit beside it as soft tinted buttons. */
   variant: "primary" | "secondary";
   onPress: () => void;
 }
@@ -20,9 +20,9 @@ export default function ActionButton({ label, iconName, variant, onPress }: Acti
       accessibilityLabel={label}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.button, isPrimary ? styles.primary : styles.secondary, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.button, isPrimary ? styles.primary : styles.secondary, pressed && (isPrimary ? styles.primaryPressed : styles.secondaryPressed)]}
     >
-      <Feather accessibilityElementsHidden color={isPrimary ? COLORS.white : COLORS.ink} name={iconName} size={16} />
+      <Feather accessibilityElementsHidden color={isPrimary ? COLORS.white : COLORS.accent} name={iconName} size={16} />
       <Text maxFontSizeMultiplier={1.3} style={[styles.label, isPrimary && styles.primaryLabel]}>{label}</Text>
     </Pressable>
   );
@@ -32,17 +32,25 @@ const styles = StyleSheet.create({
   button: {
     alignItems: "center",
     borderRadius: RADII.medium,
-    borderWidth: 1,
     flexDirection: "row",
     flexGrow: 1,
     gap: SPACING.small,
     justifyContent: "center",
     minHeight: MINIMUM_TOUCH_SIZE,
-    paddingHorizontal: SPACING.small,
+    paddingHorizontal: SPACING.medium,
   },
-  primary: { backgroundColor: COLORS.accent, borderColor: COLORS.accent, flexShrink: 0 },
-  secondary: { backgroundColor: COLORS.surface, borderColor: COLORS.border, flexShrink: 0 },
-  pressed: { opacity: 0.8 },
-  label: { color: COLORS.ink, flexShrink: 0, ...TYPOGRAPHY.body, fontWeight: "700" },
+  primary: {
+    backgroundColor: COLORS.accent,
+    elevation: 2,
+    flexShrink: 0,
+    shadowColor: COLORS.accent,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+  },
+  primaryPressed: { backgroundColor: COLORS.accentPressed, transform: [{ scale: 0.98 }] },
+  secondary: { backgroundColor: COLORS.accentSoft, flexShrink: 0 },
+  secondaryPressed: { backgroundColor: COLORS.accentSoftPressed, transform: [{ scale: 0.98 }] },
+  label: { color: COLORS.accent, flexShrink: 0, ...TYPOGRAPHY.body, fontWeight: "700" },
   primaryLabel: { color: COLORS.white },
 });

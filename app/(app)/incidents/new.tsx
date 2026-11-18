@@ -74,7 +74,7 @@ export default function NewIncidentScreen(): ReactElement {
       </ScrollView>
       <View style={styles.footer}>
         {evidence.preparation ? <Text accessibilityLiveRegion="polite" style={styles.footerStatus}>Preparing evidence…</Text> : null}
-        <PrimaryButton isDisabled={Boolean(evidence.preparation) || evidence.isRecording} label="Submit incident" onPress={handleSubmit} />
+        <PrimaryButton isDisabled={Boolean(evidence.preparation) || evidence.isRecording} iconName="send" label="Submit incident" onPress={handleSubmit} />
       </View>
 
       <OptionPickerSheet

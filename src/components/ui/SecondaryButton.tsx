@@ -24,11 +24,20 @@ export default function SecondaryButton({ label, onPress, iconName, isDisabled =
       onPress={onPress}
       style={({ pressed }) => [styles.button, style, isSelected && styles.selected, pressed && styles.pressed, isDisabled && styles.disabled]}
     >
-      {iconName ? <Feather accessibilityElementsHidden color={isSelected ? COLORS.accent : COLORS.inkMuted} importantForAccessibility="no-hide-descendants" name={iconName} size={18} /> : null}
-      <Text numberOfLines={1} style={[styles.label, isSelected && styles.selectedLabel]}>{label}</Text>
+      {iconName ? <Feather accessibilityElementsHidden color={isDisabled ? COLORS.inkMuted : COLORS.accent} importantForAccessibility="no-hide-descendants" name={iconName} size={18} /> : null}
+      <Text numberOfLines={1} style={[styles.label, isSelected && styles.selectedLabel, isDisabled && styles.disabledLabel]}>{label}</Text>
       {isSelected ? <Feather accessibilityElementsHidden color={COLORS.accent} importantForAccessibility="no-hide-descendants" name="check" size={18} /> : null}
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({ button: { alignItems: "center", backgroundColor: COLORS.surface, borderColor: COLORS.border, borderRadius: RADII.medium, borderWidth: 1, flexDirection: "row", gap: SPACING.small, justifyContent: "center", minHeight: MINIMUM_TOUCH_SIZE, paddingHorizontal: SPACING.large }, selected: { backgroundColor: COLORS.accentSoft, borderColor: COLORS.accent }, selectedLabel: { color: COLORS.accent }, pressed: { backgroundColor: COLORS.surfaceMuted, transform: [{ scale: 0.98 }] }, disabled: { opacity: 0.45 }, label: { color: COLORS.ink, ...TYPOGRAPHY.control, flexShrink: 1, fontWeight: "600" } });
+/* A soft maroon tint with maroon text: clearly an action, but quieter than the solid primary button. */
+const styles = StyleSheet.create({
+  button: { alignItems: "center", backgroundColor: COLORS.accentSoft, borderColor: "transparent", borderRadius: RADII.large, borderWidth: 1.5, flexDirection: "row", gap: SPACING.small, justifyContent: "center", minHeight: MINIMUM_TOUCH_SIZE, paddingHorizontal: SPACING.large },
+  selected: { backgroundColor: COLORS.surface, borderColor: COLORS.accent },
+  selectedLabel: { color: COLORS.accent },
+  pressed: { backgroundColor: COLORS.accentSoftPressed, transform: [{ scale: 0.98 }] },
+  disabled: { backgroundColor: COLORS.surfaceMuted },
+  disabledLabel: { color: COLORS.inkMuted },
+  label: { color: COLORS.accent, ...TYPOGRAPHY.control, flexShrink: 1, fontWeight: "700" },
+});

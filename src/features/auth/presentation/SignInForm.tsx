@@ -56,7 +56,8 @@ function SignInForm({
         />
         <PrimaryButton
           isLoading={isSubmitting}
-          label="Sign in with MPIN"
+          iconName="arrow-right" iconPlacement="trailing"
+            label="Sign in with MPIN"
           onPress={onSubmit}
         />
       </View>
@@ -83,7 +84,8 @@ function SignInForm({
       />
       <PrimaryButton
         isLoading={isSubmitting}
-        label="Continue"
+        iconName="arrow-right" iconPlacement="trailing"
+            label="Continue"
         onPress={onSubmit}
       />
     </View>

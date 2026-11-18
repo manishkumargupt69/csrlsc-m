@@ -127,7 +127,7 @@ export default function OptionPickerSheet({
       <View style={styles.state}>
         <View style={styles.stateIcon}><Feather color={COLORS.danger} name="wifi-off" size={22} /></View>
         <Text style={styles.stateText}>This list could not be loaded.</Text>
-        {onRetry ? <PrimaryButton label="Try again" onPress={handleRetry} /> : null}
+        {onRetry ? <PrimaryButton iconName="refresh-cw" label="Try again" onPress={handleRetry} /> : null}
       </View>
     );
   } else if (visibleOptions.length === 0) {
@@ -156,17 +156,18 @@ export default function OptionPickerSheet({
 
   return (
     <BottomSheetModal accessibilityLabel={"Close " + title} isVisible={isVisible} onClose={onClose} onDismiss={handleDismiss} title={title}>
-      <View style={[styles.content, { height: height * SHEET_HEIGHT_RATIO }]}>
+      {/* Short lists fit their options; long, searchable ones keep a fixed height so typing does not resize the sheet. */}
+      <View style={[styles.content, isSearchable ? { height: height * SHEET_HEIGHT_RATIO } : { maxHeight: height * SHEET_HEIGHT_RATIO }]}>
         {isSearchable ? (
           <View style={styles.search}>
             <SearchField accessibilityLabel={"Search " + title} onChangeText={setQuery} onClear={handleClear} placeholder={"Search " + title.toLocaleLowerCase()} value={query} />
           </View>
         ) : null}
         {!isLoading && !isError && options.length > 0 ? <Text style={styles.count}>{countLabel + selectedLabel}</Text> : null}
-        <View style={styles.list}>{body}</View>
+        <View style={isSearchable ? styles.list : styles.listCompact}>{body}</View>
         {isMultiple ? (
           <View style={styles.footer}>
-            <PrimaryButton label={selectedIds.length > 0 ? "Done (" + selectedIds.length + ")" : "Done"} onPress={onClose} />
+            <PrimaryButton iconName="check" label={selectedIds.length > 0 ? "Done (" + selectedIds.length + ")" : "Done"} onPress={onClose} />
           </View>
         ) : null}
       </View>
@@ -181,6 +182,7 @@ const styles = StyleSheet.create({
   search: { flexDirection: "row", paddingBottom: SPACING.small, paddingHorizontal: SCREEN_HORIZONTAL_PADDING },
   count: { color: COLORS.inkMuted, ...TYPOGRAPHY.caption, fontWeight: "600", paddingBottom: SPACING.small, paddingHorizontal: SCREEN_HORIZONTAL_PADDING + 4 },
   list: { flex: 1 },
+  listCompact: { flexShrink: 1, paddingBottom: SPACING.large },
   listCard: {
     backgroundColor: COLORS.surface,
     borderColor: COLORS.border,
@@ -199,7 +201,7 @@ const styles = StyleSheet.create({
   markBox: { borderRadius: 7 },
   markSelected: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
   separator: { backgroundColor: COLORS.border, height: StyleSheet.hairlineWidth, marginLeft: SPACING.large },
-  state: { alignItems: "center", flex: 1, gap: SPACING.medium, justifyContent: "center", padding: SCREEN_HORIZONTAL_PADDING },
+  state: { alignItems: "center", flexGrow: 1, gap: SPACING.medium, justifyContent: "center", minHeight: 160, padding: SCREEN_HORIZONTAL_PADDING },
   stateIcon: { alignItems: "center", backgroundColor: COLORS.surface, borderRadius: RADII.pill, height: 52, justifyContent: "center", width: 52 },
   stateText: { color: COLORS.inkMuted, ...TYPOGRAPHY.body, textAlign: "center" },
   footer: { padding: SCREEN_HORIZONTAL_PADDING },
