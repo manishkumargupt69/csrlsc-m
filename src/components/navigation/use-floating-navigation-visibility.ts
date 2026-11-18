@@ -4,7 +4,6 @@ import { useOptionalAppNavigation } from "@/src/components/navigation/AppNavigat
 import { TAB_ITEMS } from "@/src/components/navigation/tab-items";
 
 const TAB_SCREENS: ReadonlySet<string> = new Set(TAB_ITEMS.map((item) => item.name));
-const FORM_SEGMENT = "new";
 
 /**
  * The floating bar stands in for the tab bar on screens pushed above the tabs.
@@ -21,7 +20,8 @@ export const useFloatingNavigationVisibility = (): boolean => {
   if (segments.length === 1 && TAB_SCREENS.has(screen)) return false;
   if (screen === "mpin-setup") return false;
   if (screen === "incidents" && child) return false;
-  if (screen === "assessments" && (child === FORM_SEGMENT || segments.length > 2)) return false;
+  // Every request screen (view, audit, parameter, new) ends in its own footer action the bar would cover.
+  if (screen === "assessments" && child) return false;
   return true;
 };
 
